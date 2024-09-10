@@ -1,10 +1,10 @@
 import './App.css'
 import WebApp from '@twa-dev/sdk'
-import { useState } from "react";
-import { Calendar, momentLocalizer } from "react-big-calendar";
-import moment from "moment";
-import events from "./events";
-import "react-big-calendar/lib/css/react-big-calendar.css";
+import { useState } from "react"
+import { Calendar, momentLocalizer } from "react-big-calendar"
+import moment from "moment"
+import events from "./events"
+import "react-big-calendar/lib/css/react-big-calendar.css"
 
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
