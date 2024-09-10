@@ -4,7 +4,7 @@ name: Deploy static content to Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ['master']
+    branches: ['main']
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -33,24 +33,24 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
-          cache-dependency-path: './'
+          cache-dependency-path: './tg-webapp/package.json' # Указываем путь к package.json
       - name: Install dependencies
         run: |
-            cd tg-webapp 
-            npm install
+          cd tg-webapp
+          npm install
       - name: Build
         run: |
-          cd tg-webapp 
+          cd tg-webapp
           npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          # Upload dist repository
-          path: './docs'
+          # Upload build output directory
+          path: './tg-webapp/build'  # Убедитесь, что это путь к вашему билдовому каталогу
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
