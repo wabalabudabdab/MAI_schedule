@@ -1,16 +1,12 @@
-// src/App.tsx
-
 import './App.css';
 import WebApp from '@twa-dev/sdk';
-import { useState } from "react";
-import { Calendar, momentLocalizer, SlotInfo } from "react-big-calendar";
+import { useEffect, useState } from "react";
+import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
-import events from "./events";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
-
 type Event = {
     id: number;
     title?: string;
@@ -22,42 +18,68 @@ type Event = {
 
 type CalendarView = "day" | "agenda" | "work_week" | "month";
 
-export default function ReactBigCalendar() {
-    // Fixed: Correct useState type
-    const [eventsData, setEventsData] = useState<Event[]>(events);
+function transformDataToEvents(data: any): Event[] {
+    const events: Event[] = [];
 
-    // Fixed: Adjusted handleSelect to match SlotInfo type
-    const handleSelect = ({ start, end }: SlotInfo) => {
-        console.log(start);
-        console.log(end);
-        const title = window.prompt("New Event name");
-        if (title) {
-            const generateId = () => new Date().getTime();
-            setEventsData([
-                ...eventsData,
-                {
-                    id: generateId(),
-                    title,
-                    start,
-                    end,
-                    allDay: false // Default value
-                }
-            ]);
-        }
-    };
+    if (data && typeof data === 'object') {
+        Object.keys(data).forEach((date, idx) => {
+            const dayInfo = data[date];
+            if (dayInfo && dayInfo.pairs) {
+                const pairs = dayInfo.pairs;
+                Object.keys(pairs).forEach(time => {
+                    const lessonInfo = pairs[time];
+                    const lessonName = Object.keys(lessonInfo)[0];
+                    const lessonDetails = lessonInfo[lessonName];
+
+                    const [day, month, year] = date.split('.').map(Number);
+
+                    const start = new Date(year, month - 1, day, ...lessonDetails.time_start.split(':').map(Number));
+                    const end = new Date(year, month - 1, day, ...lessonDetails.time_end.split(':').map(Number));
+
+                    events.push({
+                        id: idx,
+                        title: lessonName,
+                        start: start,
+                        end: end,
+                        desc: lessonDetails.lector ? Object.values(lessonDetails.lector)[0] : ""
+                    });
+                });
+            }
+        });
+    }
+
+    return events;
+}
+
+export default function ReactBigCalendar() {
+    const [eventsData, setEventsData] = useState<Event[]>();
+    useEffect(() => {
+        fetch('./mock.json')
+            .then(response => {
+                return response.json()
+            })
+            .then((data) => {
+                const transformedEvents = transformDataToEvents(data);
+                setEventsData(transformedEvents);
+            })
+            .catch((error)=> console.log('Error: ', error))
+    }, []);
+
+    useEffect(() => {
+        console.log("Events Data:", eventsData);
+    }, [eventsData]);
 
     return (
         <div className="App">
+
             <Calendar
-                views={["day", "agenda", "work_week", "month"] as CalendarView[]}
+                views={["day", "agenda", "week", "month"] as CalendarView[]}
                 selectable
                 localizer={localizer}
                 defaultDate={new Date()}
                 defaultView="month"
                 events={eventsData}
-                style={{ height: "100vh", width: "100vw" }}
-                onSelectEvent={(event) => WebApp.showAlert([event.title].toString())}
-                onSelectSlot={handleSelect} // Fixed: Use correct function type
+                style={{height: "100vh", width: "100%", padding: "1rem"}}
             />
         </div>
     );
