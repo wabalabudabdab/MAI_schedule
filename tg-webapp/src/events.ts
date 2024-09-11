@@ -1,6 +1,13 @@
 const now = new Date();
-
-export default [
+export type Event = {
+  id: number;
+  title: string;
+  allDay?: boolean;
+  start: Date;
+  end: Date;
+  desc?: string;
+};
+const events: Event[] = [
   {
     id: 0,
     title: "All Day Event very long title",
@@ -178,3 +185,4 @@ export default [
     end: new Date(2024, 8, 14, 20, 0, 0)
   }
 ];
+export default events;
